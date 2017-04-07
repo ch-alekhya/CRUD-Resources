@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>edu.asu.cse564.scratch.greeting</groupId>
-    <artifactId>CSE564_CRUD_RESTsrv</artifactId>
+    <artifactId>CRUD_server</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <name>CSE564_CRUD_RESTsrv</name>
+    <name>CRUD_server</name>
 
     <build>
         <finalName>CSE_CRUD_RESTsrv</finalName>
@@ -59,6 +59,21 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.7.24</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.13</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.9.0.pr2</version>
         </dependency>
     </dependencies>
     <properties>

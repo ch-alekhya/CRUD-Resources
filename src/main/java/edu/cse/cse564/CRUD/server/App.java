@@ -226,6 +226,75 @@ public class App {
         }
     }
     
+    /**
+     * method to retrieve data of the student
+     * @param args 
+     */
+    @GET
+    @Path("/gradebook/student/{StudentID}")
+    public static Response getStudentDetails(@FormParam("StudentID") String sid)
+    {
+        LOG.info("getting an instance of student {}",sid);
+        LOG.debug("GET request");
+        LOG.debug("Request Content = {} {} ",sid);
+        if(sid.equals(""))
+        {
+             LOG.debug("sid is ''");
+            return Response.status(Response.Status.BAD_REQUEST).entity("Student id given is empty").build();
+        }
+        try
+        {
+            if(gradebook==null)
+            {
+                return Response.status(Response.Status.BAD_REQUEST).entity("No students assigned to this gradebook").build();
+            }
+            List<Student> studentslist=gradebook.getStudents();
+            Student retrived=null;
+            boolean status=false;
+            for(Student s:studentslist)
+            {
+                if(s.getStudentID().equals(sid))
+                        {
+                            status=true;
+                            retrived=s;
+                            break;
+                        }
+            }
+            
+            if(status)
+            {
+                 LOG.debug("there exists a student");
+                 ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+              String output = mapper.writeValueAsString(retrived);
+                return Response.status(Response.Status.CREATED).entity(output).build();
+            }
+            else
+            {
+                 LOG.debug("no student with the given sid {}",sid);
+                String message="The student ID :"+sid+" doesnot exists";
+                return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+            }
+            
+            
+        }
+        catch(JsonParseException e)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(JsonMappingException e)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(IOException e)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
     
 
 
@@ -252,6 +321,16 @@ public class App {
         
         r=obj.createGradeItem("nvh","");
         System.out.println(r.getEntity().toString());
+        
+         r=obj.createGradeItem("123","5");
+        System.out.println(r.getEntity().toString());
+        
+        r=obj.getStudentDetails("1");
+         System.out.println(r.getEntity().toString());
+         
+        r=obj.getStudentDetails("4");
+        System.out.println(r.getEntity().toString());
+        
         
                 
         
