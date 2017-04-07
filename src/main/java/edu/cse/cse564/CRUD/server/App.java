@@ -232,7 +232,7 @@ public class App {
      */
     @GET
     @Path("/gradebook/student/{StudentID}")
-    public static Response getStudentDetails(@FormParam("StudentID") String sid)
+    public static Response getStudentDetails(@PathParam("StudentID") String sid)
     {
         LOG.info("getting an instance of student {}",sid);
         LOG.debug("GET request");
@@ -358,7 +358,7 @@ public class App {
     @DELETE
     @Path("/gradebook/student/{StudentID}")
     
-    public static Response deleteStudent(@FormParam("StudentID") String sid)
+    public static Response deleteStudent(@PathParam("StudentID") String sid)
     {
         LOG.info("Deleting the student with {}",sid);
         LOG.debug("DELETE request");
@@ -366,7 +366,7 @@ public class App {
         if(sid.equals(""))
         {
                LOG.debug("sid is equals to '' ");
-            return Response.status(Response.Status.BAD_REQUEST).entity("The stident id given is empty").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("The student id given is empty").build();
         }
         
         if(gradebook==null)
@@ -427,7 +427,87 @@ public class App {
         }
     }
     
-   
+    /**
+     * This method deletes particular gradeID for all the students
+     * gradeID is the argument given 
+     * return response
+     * @param args 
+     */
+   @DELETE
+   @Path("/gradebook/gradeitem/{GradeID}")
+   public static Response deleteGradeItemforallStudents(@PathParam("GradeID") String gid)
+   {
+       LOG.info("Deleting the grade with {}",gid);
+        LOG.debug("DELETE request");
+        
+       if(gid.equals(""))
+       {
+            LOG.debug("gid is equals to '' ");
+           Response.status(Response.Status.BAD_REQUEST).entity("The grade id given is empty").build();
+       }
+       if(gradebook==null)
+       {
+            LOG.debug("Gradebook is null ");
+           Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is null").build();
+       }
+       try{
+            LOG.debug("gradeitem deleting started ");
+           List<Student> existingstudents=gradebook.getStudents();
+           
+           GradeItem removed=null;
+           boolean status=false;
+           for(Student s:existingstudents)
+           {
+               List<GradeItem> gradeitems=s.getStudentGradeItems();
+               for(GradeItem g:gradeitems)
+               {
+                   if(g.getGradeID().equals(gid))
+                   {
+                       status=true;
+                       gradeitems.remove(g);
+                       removed=g;
+                       break;
+                   }
+               }
+               if(status)
+               {
+                   s.setStudentGradeItems(gradeitems);
+               }
+               else
+               {
+                    LOG.debug("gid not present {} ",gid);
+                   String message="the Grade with ID: "+gid+" doesnot exists";
+                   return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+               }
+           }
+           
+            LOG.debug("gradeid for all the students deleted {}",gid);
+           gradebook.setStudents(existingstudents);
+           ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+            String output=mapper.writeValueAsString(removed);
+           return Response.status(Response.Status.OK).entity(output).build();
+            
+           
+           
+       }
+       catch(JsonParseException e)
+       {
+           return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       catch(JsonMappingException e)
+       {
+           return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       catch(IOException e)
+       {
+           return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+   }
 
     public static void main(String[] args)
     {
@@ -470,6 +550,10 @@ public class App {
         
         r=obj.deleteStudent("8");
         System.out.println(r.getEntity().toString());
+        
+        r=obj.deleteGradeItemforallStudents("123");
+         System.out.println(r.getEntity().toString());
+         
         
         
                 
