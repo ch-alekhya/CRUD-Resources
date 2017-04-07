@@ -297,6 +297,56 @@ public class App {
     }
     
 
+    
+    /**
+     * retreving  entire gradebook of the class 
+     * no args
+     * @param args 
+     */
+    
+    @GET
+    @Path("/gradebook")
+    
+    public static Response getGradebookdetails()
+    {
+        LOG.info("Getting the Gradebook details");
+        LOG.debug("GET request");
+      
+        if(gradebook==null)
+        {
+            Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is empty").build();
+        }
+        try
+        {
+             LOG.debug("Gradebook gathering started ");
+             ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+            String output=mapper.writeValueAsString(gradebook);
+            LOG.info("Gradebook retrivel completed");
+        
+            return Response.status(Response.Status.CREATED).entity(output).build();
+            
+        }
+        catch(JsonParseException e)
+        {
+            LOG.debug("exception raised");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(JsonMappingException e)
+        {
+            LOG.debug("exception raised");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(IOException e)
+        {
+            LOG.debug("exception raised");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
 
     public static void main(String[] args)
     {
@@ -329,6 +379,9 @@ public class App {
          System.out.println(r.getEntity().toString());
          
         r=obj.getStudentDetails("4");
+        System.out.println(r.getEntity().toString());
+        
+           r=obj.getGradebookdetails();
         System.out.println(r.getEntity().toString());
         
         
