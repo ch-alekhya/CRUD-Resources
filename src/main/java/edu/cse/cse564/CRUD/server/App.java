@@ -27,6 +27,13 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 
 import java.io.IOException;
 
@@ -103,7 +110,13 @@ public class App {
 
             }
             LOG.debug("CreateStudent Complete");
-            String output = new ObjectMapper().writeValueAsString(newstudent);
+              ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+            String output = mapper.writeValueAsString(newstudent);
             return Response.status(Response.Status.CREATED).entity(output).build();
         } catch (JsonParseException e) {
             LOG.debug("CreateStudent Complete");
@@ -120,6 +133,100 @@ public class App {
     }
 
 
+    /**
+     * method to create GradeItem
+     * @param gid,per
+     * return Response
+     * 
+     */
+    @POST
+    @Path("/gradebook/gradeitem")
+    
+    
+    
+    public static Response createGradeItem(@FormParam("GradeID") String gid,@FormParam("Percentage") String per)
+    {
+        LOG.info("Creating the instance createGrade {}");
+        LOG.debug("POST request");
+        LOG.debug("Request Content = {} {} ", gid, per);
+
+        GradeItem newgradeitem=null;
+        
+        if(gid.equals("")||per.equals(""))
+        {
+            return Response.status(Response.Status.BAD_REQUEST).entity("GradeItems are empty").build();
+        }
+        try
+        {
+            if(gradebook==null)
+            {
+                 LOG.debug("CreateGrade inComplete");
+                return Response.status(Response.Status.BAD_REQUEST).entity("gradebook is null").build();
+            }
+            else
+            {
+                List<Student> existingstudents=gradebook.getStudents();
+                for(Student s:existingstudents)
+                {
+                    List<GradeItem> gradeitems=s.getStudentGradeItems();
+                    if (gradeitems != null) {
+                        for (GradeItem g : gradeitems) {
+                            if (g.getGradeID().equals(gid)) {
+                                String message = "Grade with ID: " + gid + " already exists";
+                                 LOG.debug("CreateGrade inComplete");
+                                return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                            }
+                        }
+                         LOG.debug("Grade added to existing list");
+                        newgradeitem=new GradeItem();
+                        newgradeitem.setGradeID(gid);
+                        newgradeitem.setPercentage(per);
+                        gradeitems.add(newgradeitem);
+                        s.setStudentGradeItems(gradeitems);
+                    }
+                    else
+                    {
+                         LOG.debug("Grade added to new list");
+                        List<GradeItem> newgradeitemlist= new ArrayList<GradeItem>();
+                         newgradeitem=new GradeItem();
+                        newgradeitem.setGradeID(gid);
+                        newgradeitem.setPercentage(per);
+                        newgradeitemlist.add(newgradeitem);
+                        s.setStudentGradeItems(newgradeitemlist);
+                        
+                    }
+                }
+                
+            }
+             LOG.debug("CreateGrade Complete");
+             ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+            String output=mapper.writeValueAsString(newgradeitem);
+            return Response.status(Response.Status.CREATED).entity(output).build();
+            
+        }
+        catch(JsonParseException e)
+        {
+             LOG.debug("exception raised");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(JsonMappingException e)
+        {
+             LOG.debug("exception raised");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(IOException e)
+        {
+             LOG.debug("exception raised");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+    
+    
 
 
     public static void main(String[] args)
@@ -133,6 +240,19 @@ public class App {
         System.out.println(r.getEntity().toString());
         r=obj.createStudent("dh","");
         System.out.println(r.getEntity().toString());
+        
+        r=obj.createGradeItem("123","5");
+        System.out.println(r.getEntity().toString());
+        
+        r=obj.createGradeItem("1234","6");
+        System.out.println(r.getEntity().toString());
+        
+        r=obj.createGradeItem("","gyjgj");
+        System.out.println(r.getEntity().toString());
+        
+        r=obj.createGradeItem("nvh","");
+        System.out.println(r.getEntity().toString());
+        
                 
         
     }

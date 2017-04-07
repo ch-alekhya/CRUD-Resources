@@ -44,24 +44,24 @@ public class GradeItem {
         return this.Percentage;
     }
     
-    public void setGradeID(String id)
+    public void setGradeID(String GradeID)
     {
-        this.GradeID=id;
+        this.GradeID=GradeID;
     }
     
-    public void setGrade(String grade)
+    public void setGrade(String Grade)
     {
-        this.Grade=grade;
+        this.Grade=Grade;
     }
     
-    public void setFeedback(String feedback)
+    public void setFeedback(String Feedback)
     {
-        this.Feedback=feedback;
+        this.Feedback=Feedback;
     }
     
-    public void setPercentage(String per)
+    public void setPercentage(String Percentage)
     {
-        this.Percentage=per;
+        this.Percentage=Percentage;
     }
     
 }
