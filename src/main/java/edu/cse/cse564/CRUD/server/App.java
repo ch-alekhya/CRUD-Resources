@@ -347,6 +347,87 @@ public class App {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
+    
+    
+    /**
+     * This method deletes particular student
+     * @param sid
+     * return Response
+     */
+    
+    @DELETE
+    @Path("/gradebook/student/{StudentID}")
+    
+    public static Response deleteStudent(@FormParam("StudentID") String sid)
+    {
+        LOG.info("Deleting the student with {}",sid);
+        LOG.debug("DELETE request");
+        
+        if(sid.equals(""))
+        {
+               LOG.debug("sid is equals to '' ");
+            return Response.status(Response.Status.BAD_REQUEST).entity("The stident id given is empty").build();
+        }
+        
+        if(gradebook==null)
+        {
+               LOG.debug("Nothing in the gradebook");
+            return Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is empty cannot delete student").build();
+        }
+        try
+        {
+            List<Student> existingstudents=gradebook.getStudents();
+            boolean status=false;
+            Student removed=null;
+            for(Student s:existingstudents)
+            {
+                if(s.getStudentID().equals(sid))
+                {
+                       LOG.debug("Found the student {}",sid);
+                    status=true;
+                    removed=s;
+                    existingstudents.remove(s);
+                    break;
+                    
+                }
+            }
+            if(status)
+            {
+                gradebook.setStudents(existingstudents);
+                 ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+            String output=mapper.writeValueAsString(removed);
+            return Response.status(Response.Status.CREATED).entity(output).build();
+            }
+            else
+            {
+                   LOG.debug("Student doesnot exists");
+                String message="The student with ID: "+sid+" doesnot exists";
+                return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+            }
+        }
+        catch(JsonParseException e)
+        {
+               LOG.debug("Exception encountered");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(JsonMappingException e)
+        {
+               LOG.debug("exception encountered");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(IOException e)
+        {
+               LOG.debug("Exception encountered");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
+    
+   
 
     public static void main(String[] args)
     {
@@ -382,6 +463,12 @@ public class App {
         System.out.println(r.getEntity().toString());
         
            r=obj.getGradebookdetails();
+        System.out.println(r.getEntity().toString());
+        
+        r=obj.deleteStudent("1");
+        System.out.println(r.getEntity().toString());
+        
+        r=obj.deleteStudent("8");
         System.out.println(r.getEntity().toString());
         
         
