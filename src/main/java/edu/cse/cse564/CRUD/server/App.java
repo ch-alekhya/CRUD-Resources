@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package edu.cse.cse564.CRUD.server;
+
 import java.util.*;
 import java.net.URI;
 import java.util.Random;
@@ -38,104 +39,103 @@ import org.slf4j.LoggerFactory;
  */
 @Path("/")
 public class App {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(App.class);
     public static GradeBook gradebook;
-    
-      @Context
+
+    @Context
     private UriInfo context;
-    
-    App()
-    {
-         LOG.info("Creating an App class");
-         gradebook=null;
-        
+
+    App() {
+        LOG.info("Creating an App class");
+        gradebook = null;
+
     }
-    
+
     /**
      * This method creates the Student
      */
     @POST
     @Path("/gradebook/student")
-    
-    public static Response createStudent(@FormParam("StudentID") String sid, @FormParam("StudentName") String sname)
-    {
+
+    public static Response createStudent(@FormParam("StudentID") String sid, @FormParam("StudentName") String sname) {
         LOG.info("Creating the instance createStudent {}");
         LOG.debug("POST request");
-        LOG.debug("Request Content = {} {} ", sid,sname);
-        
-        if(sid.equals("")||sname.equals(""))
-        {
+        LOG.debug("Request Content = {} {} ", sid, sname);
+
+        if (sid.equals("") || sname.equals("")) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Student Details  are empty").build();
         }
-        try
-        {
-            Student newstudent=new Student();
+        try {
+            Student newstudent = new Student();
             newstudent.setStudentID(sid);
             newstudent.setStudentName(sname);
-            
-            if (gradebook==null)
-            {
-                gradebook=new GradeBook();
-                List<Student> studentlist=new ArrayList<Student>();
+
+            if (gradebook == null) {
+                gradebook = new GradeBook();
+                List<Student> studentlist = new ArrayList<Student>();
                 studentlist.add(newstudent);
                 gradebook.setStudents(studentlist);
-            }
-            else
-            {
-                List<Student> existingstudents=gradebook.getStudents();
-                for (Student s:existingstudents)
-                {
-                    if(s.getStudentID().equals(sid))
-                    {
-                        String message="Student ID :"+sid+" given already exists";
+            } else {
+                List<Student> existingstudents = gradebook.getStudents();
+                for (Student s : existingstudents) {
+                    if (s.getStudentID().equals(sid)) {
+                        String message = "Student ID :" + sid + " given already exists";
                         return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
                     }
                 }
-                    
-                    List<GradeItem> existinggradeitems=existingstudents.get(0).getStudentGradeItems();
-                    if(existinggradeitems==null)
-                    {
-                        existingstudents.add(newstudent);
-                        gradebook.setStudents(existingstudents);
+
+                List<GradeItem> existinggradeitems = existingstudents.get(0).getStudentGradeItems();
+                if (existinggradeitems == null) {
+                    existingstudents.add(newstudent);
+                    gradebook.setStudents(existingstudents);
+                } else {
+                    List<GradeItem> newgradeitem = new ArrayList<GradeItem>();
+                    for (GradeItem g : existinggradeitems) {
+                        g.setFeedback(null);
+                        g.setGrade(null);
+                        newgradeitem.add(g);
                     }
-                    else
-                    {
-                        List<GradeItem> newgradeitem=new ArrayList<GradeItem>();
-                        for (GradeItem g:existinggradeitems)
-                        {
-                            g.setFeedback(null);
-                            g.setGrade(null);
-                            newgradeitem.add(g);
-                        }
-                        newstudent.setStudentGradeItems(newgradeitem);
-                        existingstudents.add(newstudent);
-                        gradebook.setStudents(existingstudents);
-                    }
-                    
-                    
+                    newstudent.setStudentGradeItems(newgradeitem);
+                    existingstudents.add(newstudent);
+                    gradebook.setStudents(existingstudents);
                 }
-                 LOG.debug("CreateStudent Complete");
-                String output=new ObjectMapper().writeValueAsString(newstudent);
-                return Response.status(Response.Status.CREATED).entity(output).build();
-          }
-        catch(JsonParseException e) {
-                         LOG.debug("CreateStudent Complete");
-			return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        catch(JsonMappingException e)
-        {
-             LOG.debug("CreateStudent Complete");
+
+            }
+            LOG.debug("CreateStudent Complete");
+            String output = new ObjectMapper().writeValueAsString(newstudent);
+            return Response.status(Response.Status.CREATED).entity(output).build();
+        } catch (JsonParseException e) {
+            LOG.debug("CreateStudent Complete");
             return Response.status(Response.Status.BAD_REQUEST).build();
-            
-        }
-        catch(IOException e)
-        {
-             LOG.debug("CreateStudent Complete");
+        } catch (JsonMappingException e) {
+            LOG.debug("CreateStudent Complete");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+
+        } catch (IOException e) {
+            LOG.debug("CreateStudent Complete");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-       
+
     }
-    
-    
+
+
+
+
+    public static void main(String[] args)
+    {
+        App obj=new App();
+        Response r=obj.createStudent("1","aa");
+        System.out.println(r.getEntity().toString());
+        r=obj.createStudent("2","bb");
+        System.out.println(r.getEntity().toString());
+        r=obj.createStudent("","hdj");
+        System.out.println(r.getEntity().toString());
+        r=obj.createStudent("dh","");
+        System.out.println(r.getEntity().toString());
+                
+        
+    }
+            
+
 }
