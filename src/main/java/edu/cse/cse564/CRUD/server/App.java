@@ -171,7 +171,7 @@ public class App {
                     List<GradeItem> gradeitems=s.getStudentGradeItems();
                     if (gradeitems != null) {
                         for (GradeItem g : gradeitems) {
-                            System.out.println(g.getGradeID());
+                           // System.out.println(g.getGradeID());
                             if (g.getGradeID().equals(gid)) {
                                 String message = "Grade with ID: " + gid + " already exists";
                                  LOG.debug("CreateGrade inComplete");
