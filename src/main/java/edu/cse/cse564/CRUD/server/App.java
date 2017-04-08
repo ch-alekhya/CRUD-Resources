@@ -55,7 +55,7 @@ public class App {
 
     App() {
         LOG.info("Creating an App class");
-        gradebook = null;
+        //gradebook = null;
 
     }
 
@@ -237,7 +237,7 @@ public class App {
     {
         LOG.info("getting an instance of student {}",sid);
         LOG.debug("GET request");
-        LOG.debug("Request Content = {} {} ",sid);
+        LOG.debug("Request Content = {}",sid);
         if(sid.equals(""))
         {
              LOG.debug("sid is ''");
@@ -245,10 +245,13 @@ public class App {
         }
         try
         {
+            LOG.debug("Came into try {}",sid);
             if(gradebook==null)
             {
+                LOG.debug("Gradebook is null");
                 return Response.status(Response.Status.BAD_REQUEST).entity("No students assigned to this gradebook").build();
             }
+            LOG.debug("Gradebook is not null");
             List<Student> studentslist=gradebook.getStudents();
             Student retrived=null;
             boolean status=false;
@@ -777,6 +780,7 @@ public class App {
         System.out.println(r.getEntity().toString());
         r=obj.updateGradeforParticularStudent("1209209296","midterm","A","goodjob");
           System.out.println(r.getEntity().toString());
+          
         
                 
         
