@@ -508,6 +508,106 @@ public class App {
            return Response.status(Response.Status.BAD_REQUEST).build();
        }
    }
+   
+   /**
+    * this method deletes particular grade for a particular student
+    *
+    * @param gradeid and studentid
+    * return response
+    */
+   @DELETE
+   @Path("/gradebook/student")
+   
+   public static Response deleteGradeforParticularStudent(@FormParam("StudentID") String sid, @FormParam("GradeID") String gid)
+   {
+       LOG.info("Deleting the grade for student with {} {} ",gid,sid);
+        LOG.debug("DELETE request");
+       if(sid.equals("")||gid.equals(""))
+       {
+           
+            LOG.debug("either sid or gid is null");
+           Response.status(Response.Status.BAD_REQUEST).entity("Either StudentID or GradeID is empty").build();
+       }
+       
+       if(gradebook==null)
+       {
+           LOG.debug("gradebook is null");
+           Response.status(Response.Status.BAD_REQUEST).entity("gradebook is empty").build();
+       }
+       try{
+           LOG.debug("Entered into place where gradebook is not null");
+           List<Student> existingstudents=gradebook.getStudents();
+           boolean gradestatus=false;
+           boolean studentstatus=false;
+           Student removedst=null;
+           GradeItem removedgrade=null;
+           
+           for(Student s:existingstudents)
+           {
+               if(s.getStudentID().equals(sid))
+               {
+                   removedst=s;
+                   studentstatus=true;
+                   List<GradeItem> gradeitems=s.getStudentGradeItems();
+                   for(GradeItem g :gradeitems)
+                   {
+                       if(g.getGradeID().equals(gid))
+                       {
+                           removedgrade=g;
+                           g.setGradeID(null);
+                           g.setPercentage(null);
+                           gradestatus=true;
+                       }
+                   }
+                   if(!gradestatus)
+                   {
+                       LOG.debug(" gid is not found");
+                       String message="The gradeID ID: "+gid+" doesnot exists for Student ID:"+sid+" ";
+                        Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+
+                   }
+                       
+                   s.setStudentGradeItems(gradeitems);
+               }
+           }
+           if(!studentstatus)
+           {
+               LOG.debug("sid not found ");
+                String message="Student with StudentID: "+sid+ " doesnot exists ";
+                 Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+           }
+           gradebook.setStudents(existingstudents);
+           ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+            String output1=mapper.writeValueAsString(removedgrade);
+            String output2=mapper.writeValueAsString(removedst);
+            String output=output1+output2;
+            LOG.debug("sid gid found");
+           return Response.status(Response.Status.OK).entity(output).build();
+           
+           
+       }
+       catch(JsonParseException e)
+       {
+           LOG.debug("In exception case");
+          return  Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       catch(JsonMappingException e)
+       {
+            LOG.debug("In exception case");
+           return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       catch(IOException e)
+       {
+            LOG.debug("In exception case");
+          return  Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       
+   }
 
     public static void main(String[] args)
     {
@@ -554,6 +654,13 @@ public class App {
         r=obj.deleteGradeItemforallStudents("123");
          System.out.println(r.getEntity().toString());
          
+          r=obj.createStudent("67","bbcccc");
+        System.out.println(r.getEntity().toString());
+          r=obj.createGradeItem("890","15");
+        System.out.println(r.getEntity().toString());
+         
+         r=obj.deleteGradeforParticularStudent("67","890");
+          System.out.println(r.getEntity().toString());
         
         
                 
