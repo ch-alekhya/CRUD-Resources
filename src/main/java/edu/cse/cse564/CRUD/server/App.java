@@ -171,6 +171,7 @@ public class App {
                     List<GradeItem> gradeitems=s.getStudentGradeItems();
                     if (gradeitems != null) {
                         for (GradeItem g : gradeitems) {
+                            System.out.println(g.getGradeID());
                             if (g.getGradeID().equals(gid)) {
                                 String message = "Grade with ID: " + gid + " already exists";
                                  LOG.debug("CreateGrade inComplete");
@@ -554,9 +555,10 @@ public class App {
                        if(g.getGradeID().equals(gid))
                        {
                            removedgrade=g;
-                           g.setGradeID(null);
-                           g.setPercentage(null);
+                          // g.setGradeID(null);
+                           //g.setPercentage(null);
                            gradestatus=true;
+                           //gradeitems.remove(g);
                        }
                    }
                    if(!gradestatus)
@@ -566,7 +568,7 @@ public class App {
                         Response.status(Response.Status.BAD_REQUEST).entity(message).build();
 
                    }
-                       
+                     gradeitems.remove(removedgrade); 
                    s.setStudentGradeItems(gradeitems);
                }
            }
@@ -609,6 +611,113 @@ public class App {
        
    }
 
+   @PUT
+   @Path("/gradebook/student")
+   
+   public static Response updateGradeforParticularStudent(@FormParam("StudentID") String sid,@FormParam("GradeID") String gid,@FormParam("Grade") String grade,
+           @FormParam("Feedback") String feedback)
+   {
+       LOG.info("Updating gradeitem for student with feedback and grade {} {} {} {} ",gid,sid,feedback,grade);
+        LOG.debug("PUT request");
+        
+       if(sid.equals("")|| gid.equals("")|| grade.equals("")|| feedback.equals(""))
+       {
+            LOG.debug("grade or gradeitem or sid or feedback is not given");
+           return Response.status(Response.Status.BAD_REQUEST).entity("Enter the grade details").build();
+       }
+       if(gradebook==null)
+       {
+            LOG.debug("gradebook is null");
+            return Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is null").build();
+           
+       }
+       try
+       {
+            LOG.debug("Entered into place where gradebook is not null");
+           List<Student> existingstudents=gradebook.getStudents();
+           boolean studentstatus=false;
+           boolean gradestatus=false;
+           Student modified=null;
+           GradeItem modifiedgrade=null;
+           
+           for(Student s:existingstudents)
+           {
+               if(s.getStudentID().equals(sid))
+                   
+               {
+                    LOG.debug("found student {}",sid);
+                   modified=s;
+                   studentstatus=true;
+                   List<GradeItem> gradeitems=s.getStudentGradeItems();
+                   for(GradeItem g:gradeitems)
+                   {
+                       if(g.getGradeID().equals(gid))
+                       {
+                            LOG.debug("found gradeitem {}",gid);
+                           g.setGrade(grade);
+                           g.setFeedback(feedback);
+                           gradestatus=true;
+                           modifiedgrade=g;
+                       }
+                   }
+                   if(!gradestatus)
+                   {
+                        LOG.debug("gradeitem not found");
+                       String message="The gradeId ID : "+gid+" doesnot exists for student studentID: "+sid+" ";
+                        return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                   }
+                   s.setStudentGradeItems(gradeitems);
+                   
+               }
+           }
+           if(!studentstatus)
+           {
+                LOG.debug("student item not found");
+                String message="Student with studentID: "+sid+" doesnot exist";
+                return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+               
+           }
+            LOG.debug("both found");
+           gradebook.setStudents(existingstudents);
+            gradebook.setStudents(existingstudents);
+           ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+            String output1=mapper.writeValueAsString(modified);
+            String output2=mapper.writeValueAsString(modifiedgrade);
+            String output=output1+output2;
+            LOG.debug("sid gid found");
+           return Response.status(Response.Status.OK).entity(output).build();
+           
+           
+           
+       }
+       catch(JsonParseException e)
+       {
+            LOG.debug("exception caused ");
+           return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       catch(JsonMappingException e)
+       {
+           LOG.debug("exception caused ");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+       catch(IOException e)
+       {
+           LOG.debug("exception caused ");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+       }
+   }
+   
+   
+   
+   
+   
+   
+   
     public static void main(String[] args)
     {
         App obj=new App();
@@ -662,6 +771,12 @@ public class App {
          r=obj.deleteGradeforParticularStudent("67","890");
           System.out.println(r.getEntity().toString());
         
+            r=obj.createStudent("1209209296","alekhya");
+        System.out.println(r.getEntity().toString());
+          r=obj.createGradeItem("midterm","15");
+        System.out.println(r.getEntity().toString());
+        r=obj.updateGradeforParticularStudent("1209209296","midterm","A","goodjob");
+          System.out.println(r.getEntity().toString());
         
                 
         
