@@ -275,7 +275,7 @@ public class App {
                 .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
                 .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
               String output = mapper.writeValueAsString(retrived);
-                return Response.status(Response.Status.CREATED).entity(output).build();
+                return Response.status(Response.Status.OK).entity(output).build();
             }
             else
             {
@@ -300,6 +300,82 @@ public class App {
         }
     }
     
+    
+    
+     /**
+     * method to retrieve data of the student
+     * @param args 
+     */
+    @GET
+    @Path("/gradebook/gradeitem/{GradeID}")
+    public static Response getGradeDetails(@PathParam("GradeID") String gid)
+    {
+        LOG.info("getting an instance of grade {}",gid);
+        LOG.debug("GET request");
+        LOG.debug("Request Content = {}",gid);
+        if(gid.equals(""))
+        {
+             LOG.debug("gid is ''");
+            return Response.status(Response.Status.BAD_REQUEST).entity("Grade id given is empty").build();
+        }
+        try
+        {
+            LOG.debug("Came into try {}",gid);
+            if(gradebook==null)
+            {
+                LOG.debug("Gradebook is null");
+                return Response.status(Response.Status.BAD_REQUEST).entity("No students assigned to this gradebook").build();
+            }
+            LOG.debug("Gradebook is not null");
+            List<GradeItem> itemlist=gradebook.getStudents().get(0).getStudentGradeItems();
+            
+            GradeItem retrived=null;
+            boolean status=false;
+            
+            for(GradeItem s:itemlist)
+            {
+                if(s.getGradeID().equals(gid))
+                        {
+                            status=true;
+                            retrived=s;
+                            break;
+                        }
+            }
+            
+            if(status)
+            {
+                 LOG.debug("there exists a grade");
+                 ObjectMapper mapper=new ObjectMapper();
+             mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
+                .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
+                .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
+                .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
+              String output = mapper.writeValueAsString(retrived);
+                return Response.status(Response.Status.OK).entity(output).build();
+            }
+            else
+            {
+                 LOG.debug("no grade with the given sid {}",gid);
+                String message="The student ID :"+gid+" doesnot exists";
+                return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+            }
+            
+            
+        }
+        catch(JsonParseException e)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(JsonMappingException e)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        catch(IOException e)
+        {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+    }
 
     
     /**
@@ -332,7 +408,7 @@ public class App {
             String output=mapper.writeValueAsString(gradebook);
             LOG.info("Gradebook retrivel completed");
         
-            return Response.status(Response.Status.CREATED).entity(output).build();
+            return Response.status(Response.Status.OK).entity(output).build();
             
         }
         catch(JsonParseException e)
@@ -367,7 +443,7 @@ public class App {
         LOG.info("Deleting the student with {}",sid);
         LOG.debug("DELETE request");
         
-        if(sid.equals(""))
+        if(sid.trim().equals(""))
         {
                LOG.debug("sid is equals to '' ");
             return Response.status(Response.Status.BAD_REQUEST).entity("The student id given is empty").build();
@@ -391,12 +467,14 @@ public class App {
                     status=true;
                     removed=s;
                     existingstudents.remove(s);
+                     LOG.debug("breaking from the loop");
                     break;
                     
                 }
             }
             if(status)
             {
+                 LOG.debug("entered into the status field");
                 gradebook.setStudents(existingstudents);
                  ObjectMapper mapper=new ObjectMapper();
              mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
@@ -405,13 +483,15 @@ public class App {
                 .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
                 .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
             String output=mapper.writeValueAsString(removed);
-            return Response.status(Response.Status.CREATED).entity(output).build();
+            LOG.debug("Student delete returned reposne ");
+                  
+            return Response.status(Response.Status.FOUND).entity(output).build();
             }
             else
             {
                    LOG.debug("Student doesnot exists");
                 String message="The student with ID: "+sid+" doesnot exists";
-                return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                return Response.status(Response.Status.NOT_FOUND).entity(message).build();
             }
         }
         catch(JsonParseException e)
@@ -481,7 +561,7 @@ public class App {
                {
                     LOG.debug("gid not present {} ",gid);
                    String message="the Grade with ID: "+gid+" doesnot exists";
-                   return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                   return Response.status(Response.Status.NOT_FOUND).entity(message).build();
                }
            }
            
@@ -494,7 +574,7 @@ public class App {
                 .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
                 .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
             String output=mapper.writeValueAsString(removed);
-           return Response.status(Response.Status.OK).entity(output).build();
+           return Response.status(Response.Status.FOUND).entity(output).build();
             
            
            
@@ -520,9 +600,9 @@ public class App {
     * return response
     */
    @DELETE
-   @Path("/gradebook/student")
+   @Path("/gradebook/{StudentID}/{GradeID}")
    
-   public static Response deleteGradeforParticularStudent(@FormParam("StudentID") String sid, @FormParam("GradeID") String gid)
+   public static Response deleteGradeforParticularStudent(@PathParam("StudentID") String sid, @PathParam("GradeID") String gid)
    {
        LOG.info("Deleting the grade for student with {} {} ",gid,sid);
         LOG.debug("DELETE request");
@@ -568,7 +648,7 @@ public class App {
                    {
                        LOG.debug(" gid is not found");
                        String message="The gradeID ID: "+gid+" doesnot exists for Student ID:"+sid+" ";
-                        Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                        Response.status(Response.Status.NOT_FOUND).entity(message).build();
 
                    }
                      gradeitems.remove(removedgrade); 
@@ -579,7 +659,7 @@ public class App {
            {
                LOG.debug("sid not found ");
                 String message="Student with StudentID: "+sid+ " doesnot exists ";
-                 Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                 Response.status(Response.Status.NOT_FOUND).entity(message).build();
            }
            gradebook.setStudents(existingstudents);
            ObjectMapper mapper=new ObjectMapper();
@@ -592,7 +672,7 @@ public class App {
             String output2=mapper.writeValueAsString(removedst);
             String output=output1+output2;
             LOG.debug("sid gid found");
-           return Response.status(Response.Status.OK).entity(output).build();
+           return Response.status(Response.Status.FOUND).entity(output).build();
            
            
        }
@@ -614,8 +694,8 @@ public class App {
        
    }
 
-   @PUT
-   @Path("/gradebook/student")
+  @PUT
+  @Path("/gradebook/student")
    
    public static Response updateGradeforParticularStudent(@FormParam("StudentID") String sid,@FormParam("GradeID") String gid,@FormParam("Grade") String grade,
            @FormParam("Feedback") String feedback)
@@ -715,7 +795,7 @@ public class App {
        }
    }
    
-   
+  
    
    
    
@@ -778,7 +858,7 @@ public class App {
         System.out.println(r.getEntity().toString());
           r=obj.createGradeItem("midterm","15");
         System.out.println(r.getEntity().toString());
-        r=obj.updateGradeforParticularStudent("1209209296","midterm","A","goodjob");
+       // r=obj.updateGradeforParticularStudent("1209209296","midterm","A","goodjob");
           System.out.println(r.getEntity().toString());
           
         
