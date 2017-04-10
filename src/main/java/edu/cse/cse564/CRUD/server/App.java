@@ -70,7 +70,7 @@ public class App {
         LOG.debug("POST request");
         LOG.debug("Request Content = {} {} ", sid, sname);
 
-        if (sid.equals("") || sname.equals("")) {
+        if (sid.trim().equals("") || sname.trim().equals("")) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Student Details  are empty").build();
         }
         try {
@@ -152,7 +152,7 @@ public class App {
 
         GradeItem newgradeitem=null;
         
-        if(gid.equals("")||per.equals(""))
+        if(gid.trim().equals("")||per.trim().equals(""))
         {
             return Response.status(Response.Status.BAD_REQUEST).entity("GradeItems are empty").build();
         }
@@ -394,7 +394,7 @@ public class App {
       
         if(gradebook==null)
         {
-            Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is empty").build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is empty").build();
         }
         try
         {
@@ -524,15 +524,15 @@ public class App {
        LOG.info("Deleting the grade with {}",gid);
         LOG.debug("DELETE request");
         
-       if(gid.equals(""))
+       if(gid.trim().equals(""))
        {
             LOG.debug("gid is equals to '' ");
-           Response.status(Response.Status.BAD_REQUEST).entity("The grade id given is empty").build();
+           return Response.status(Response.Status.BAD_REQUEST).entity("The grade id given is empty").build();
        }
        if(gradebook==null)
        {
             LOG.debug("Gradebook is null ");
-           Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is null").build();
+          return  Response.status(Response.Status.BAD_REQUEST).entity("Gradebook is null").build();
        }
        try{
             LOG.debug("gradeitem deleting started ");
@@ -606,18 +606,20 @@ public class App {
    {
        LOG.info("Deleting the grade for student with {} {} ",gid,sid);
         LOG.debug("DELETE request");
-       if(sid.equals("")||gid.equals(""))
+       if(sid.trim().equals("")||gid.trim().equals(""))
        {
            
             LOG.debug("either sid or gid is null");
-           Response.status(Response.Status.BAD_REQUEST).entity("Either StudentID or GradeID is empty").build();
+          return Response.status(Response.Status.BAD_REQUEST).entity("Either StudentID or GradeID is empty").build();
        }
        
        if(gradebook==null)
        {
            LOG.debug("gradebook is null");
-           Response.status(Response.Status.BAD_REQUEST).entity("gradebook is empty").build();
+          return Response.status(Response.Status.BAD_REQUEST).entity("gradebook is empty").build();
        }
+       else if (!sid.equals("")&& !gid.equals(""))
+       {
        try{
            LOG.debug("Entered into place where gradebook is not null");
            List<Student> existingstudents=gradebook.getStudents();
@@ -644,11 +646,11 @@ public class App {
                            //gradeitems.remove(g);
                        }
                    }
-                   if(!gradestatus)
+                   if(!gradestatus && studentstatus)
                    {
                        LOG.debug(" gid is not found");
                        String message="The gradeID ID: "+gid+" doesnot exists for Student ID:"+sid+" ";
-                        Response.status(Response.Status.NOT_FOUND).entity(message).build();
+                        return Response.status(Response.Status.NOT_FOUND).entity(message).build();
 
                    }
                      gradeitems.remove(removedgrade); 
@@ -659,7 +661,7 @@ public class App {
            {
                LOG.debug("sid not found ");
                 String message="Student with StudentID: "+sid+ " doesnot exists ";
-                 Response.status(Response.Status.NOT_FOUND).entity(message).build();
+                 return Response.status(Response.Status.NOT_FOUND).entity(message).build();
            }
            gradebook.setStudents(existingstudents);
            ObjectMapper mapper=new ObjectMapper();
@@ -676,6 +678,7 @@ public class App {
            
            
        }
+       
        catch(JsonParseException e)
        {
            LOG.debug("In exception case");
@@ -691,6 +694,8 @@ public class App {
             LOG.debug("In exception case");
           return  Response.status(Response.Status.BAD_REQUEST).build();
        }
+       }
+       return  Response.status(Response.Status.BAD_REQUEST).build();
        
    }
 
@@ -747,7 +752,7 @@ public class App {
                    {
                         LOG.debug("gradeitem not found");
                        String message="The gradeId ID : "+gid+" doesnot exists for student studentID: "+sid+" ";
-                        return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                        return Response.status(Response.Status.NOT_FOUND).entity(message).build();
                    }
                    s.setStudentGradeItems(gradeitems);
                    
@@ -757,7 +762,7 @@ public class App {
            {
                 LOG.debug("student item not found");
                 String message="Student with studentID: "+sid+" doesnot exist";
-                return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
+                return Response.status(Response.Status.NOT_FOUND).entity(message).build();
                
            }
             LOG.debug("both found");
