@@ -85,13 +85,15 @@ public class App {
                 gradebook.setStudents(studentlist);
             } else {
                 List<Student> existingstudents = gradebook.getStudents();
+                if(existingstudents.size()!=0)
+                {
                 for (Student s : existingstudents) {
                     if (s.getStudentID().equals(sid)) {
                         String message = "Student ID :" + sid + " given already exists";
                         return Response.status(Response.Status.BAD_REQUEST).entity(message).build();
                     }
                 }
-
+                
                 List<GradeItem> existinggradeitems = existingstudents.get(0).getStudentGradeItems();
                 if (existinggradeitems == null) {
                     existingstudents.add(newstudent);
@@ -109,7 +111,16 @@ public class App {
                 }
 
             }
+              else
+                {
+                 List<Student> studentlist = new ArrayList<Student>();
+                studentlist.add(newstudent);
+                gradebook.setStudents(studentlist);
+                    
+                }
             LOG.debug("CreateStudent Complete");
+            
+        }
               ObjectMapper mapper=new ObjectMapper();
              mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
                 .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
@@ -118,7 +129,7 @@ public class App {
                 .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
             String output = mapper.writeValueAsString(newstudent);
             return Response.status(Response.Status.CREATED).entity(output).build();
-        } catch (JsonParseException e) {
+        }catch (JsonParseException e) {
             LOG.debug("CreateStudent Complete");
             return Response.status(Response.Status.BAD_REQUEST).build();
         } catch (JsonMappingException e) {
@@ -158,10 +169,10 @@ public class App {
         }
         try
         {
-            if(gradebook==null)
+            if(gradebook==null || gradebook.getStudents().size()==0)
             {
                  LOG.debug("CreateGrade inComplete");
-                return Response.status(Response.Status.BAD_REQUEST).entity("gradebook is null").build();
+                return Response.status(Response.Status.BAD_REQUEST).entity("gradebook is null or no students in the gradebook").build();
             }
             else
             {
@@ -475,6 +486,10 @@ public class App {
             if(status)
             {
                  LOG.debug("entered into the status field");
+                 if(existingstudents.size()==0)
+                 {
+                     gradebook.setStudents(null);
+                 }
                 gradebook.setStudents(existingstudents);
                  ObjectMapper mapper=new ObjectMapper();
              mapper.setVisibilityChecker(mapper.getSerializationConfig().getDefaultVisibilityChecker()
